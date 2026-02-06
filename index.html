@@ -169,6 +169,7 @@
         }
         
         .transcript-box {
+            width: 100%;
             background: #f9f9f9;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
@@ -180,9 +181,18 @@
             margin-top: 15px;
             line-height: 1.6;
             font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+            -webkit-appearance: none;
         }
         
-        .transcript-box.empty {
+        .transcript-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .transcript-box.empty::placeholder {
             color: #999;
             font-style: italic;
         }
@@ -426,6 +436,9 @@
                     <button class="btn-danger" onclick="stopRecording()" disabled id="stopBtn">
                         ⏹️ 録音停止
                     </button>
+                    <button class="btn-secondary" onclick="clearTranscript()">
+                        🗑️ クリア
+                    </button>
                 </div>
                 
                 <div class="recording-indicator" id="recordingIndicator">
@@ -439,9 +452,7 @@
                     <div id="fileName" style="margin-top: 10px; color: #666; font-size: 13px;"></div>
                 </div>
                 
-                <div id="transcript" class="transcript-box empty">
-                    文字起こしがここに表示されます...
-                </div>
+                <textarea id="transcript" class="transcript-box empty" placeholder="文字起こしがここに表示されます...&#10;&#10;手動で編集・入力も可能です"></textarea>
             </div>
             
             <!-- 抽出ボタン -->
@@ -739,7 +750,7 @@
 
                 transcript += finalTranscript;
                 const transcriptEl = document.getElementById('transcript');
-                transcriptEl.textContent = transcript + interimTranscript;
+                transcriptEl.value = transcript + interimTranscript;
                 transcriptEl.classList.remove('empty');
             };
 
@@ -759,6 +770,17 @@
                 document.getElementById('recordingIndicator').classList.remove('active');
                 document.getElementById('stopBtn').disabled = true;
                 document.querySelector('button[onclick="startRecording()"]').disabled = false;
+            }
+        }
+
+        // 文字起こしクリア
+        function clearTranscript() {
+            if (confirm('文字起こしテキストをクリアしますか?')) {
+                transcript = '';
+                const transcriptEl = document.getElementById('transcript');
+                transcriptEl.value = '';
+                transcriptEl.classList.add('empty');
+                document.getElementById('fileName').textContent = '';
             }
         }
 
@@ -788,7 +810,7 @@
                     }
                     transcript += finalTranscript;
                     const transcriptEl = document.getElementById('transcript');
-                    transcriptEl.textContent = transcript;
+                    transcriptEl.value = transcript;
                     transcriptEl.classList.remove('empty');
                 };
 
@@ -802,9 +824,10 @@
 
         // アセスメント抽出
         async function extractAssessment() {
-            const transcriptText = document.getElementById('transcript').textContent;
+            const transcriptEl = document.getElementById('transcript');
+            const transcriptText = transcriptEl.value.trim();
             
-            if (!transcriptText || transcriptText === '文字起こしがここに表示されます...') {
+            if (!transcriptText || transcriptText === '') {
                 alert('文字起こしテキストがありません');
                 return;
             }
